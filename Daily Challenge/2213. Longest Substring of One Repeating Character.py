@@ -1,66 +1,65 @@
 class Solution:
-    def longestRepeating(self, s: str, queryCharacters: str,
-                         queryIndices: List[int]) -> List[int]:
-
+    def longestRepeating(self, s: str, queryCharacters: str, queryIndices: List[int]) -> List[int]:
         n = len(s)
         tree = [None] * (4 * n)
-        s = list(s)
+        def merge(left, right):
+            if left is None:
+                return right
+            if right is None:
+                return left
+            lc, lrc, llen, lp, ls, lb = left
+            rlc, rc, rlen, rp, rs, rb = right
+            length = llen + rlen
 
-        def merge(a, b):
-            if not a:
-                return b
-            if not b:
-                return a
+            prefix = lp
 
-            length = a[0] + b[0]
-            pref = a[1]
-            suff = b[2]
-            best = max(a[3], b[3])
+            if lrc == rlc and lp == llen:
+                prefix = llen + rp
 
-            if a[4] == b[4]:
-                best = max(best, a[2] + b[1])
+            suffix = rs
 
-                if a[1] == a[0]:
-                    pref = a[0] + b[1]
+            if lrc == rlc and rs == rlen:
+                suffix = rlen + ls
 
-                if b[2] == b[0]:
-                    suff = b[0] + a[2]
+            best = max(lb, rb)
 
-            return (length, pref, suff, best, a[4], b[5])
+            if lrc == rlc:
+                best = max(best, ls + rp)
 
-        def build(u, l, r):
-            if l == r:
-                tree[u] = (1, 1, 1, 1, s[l], s[l])
+            return [lc, rc, length, prefix, suffix, best]
+
+        def build(node, start, end):
+            if start == end:
+                tree[node] = [s[start], s[start], 1, 1, 1, 1]
                 return
 
-            mid = (l + r) // 2
+            mid = (start + end) // 2
 
-            build(u * 2, l, mid)
-            build(u * 2 + 1, mid + 1, r)
+            build(node * 2, start, mid)
+            build(node * 2 + 1, mid + 1, end)
 
-            tree[u] = merge(tree[u * 2], tree[u * 2 + 1])
+            tree[node] = merge(tree[node * 2], tree[node * 2 + 1])
 
-        def update(u, l, r, pos, c):
-            if l == r:
-                s[pos] = c
-                tree[u] = (1, 1, 1, 1, c, c)
+        def update(node, start, end, index, char):
+            if start == end:
+                tree[node] = [char, char, 1, 1, 1, 1]
                 return
 
-            mid = (l + r) // 2
+            mid = (start + end) // 2
 
-            if pos <= mid:
-                update(u * 2, l, mid, pos, c)
+            if index <= mid:
+                update(node * 2, start, mid, index, char)
             else:
-                update(u * 2 + 1, mid + 1, r, pos, c)
+                update(node * 2 + 1, mid + 1, end, index, char)
 
-            tree[u] = merge(tree[u * 2], tree[u * 2 + 1])
+            tree[node] = merge(tree[node * 2], tree[node * 2 + 1])
 
         build(1, 0, n - 1)
 
-        ans = []
+        answer = []
 
-        for i, pos in enumerate(queryIndices):
-            update(1, 0, n - 1, pos, queryCharacters[i])
-            ans.append(tree[1][3])
+        for char, index in zip(queryCharacters, queryIndices):
+            update(1, 0, n - 1, index, char)
+            answer.append(tree[1][5])
 
-        return ans
+        return answer
