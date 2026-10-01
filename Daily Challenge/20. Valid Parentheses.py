@@ -27,4 +27,25 @@ class Solution:
             return True
         else:
             return False
+
+
+#clarner 
+class Solution:
+    def isValid(self, s: str) -> bool:
+        stack = []
+        matching = {
+            ")":"(",
+            "}":"{",
+            "]":"["
+        }
+        for ele in  s:
+            if ele in {"(","{", "["}:
+                stack.append(ele)
+            else:
+                
+                if not stack or stack.pop() != matching[ele]:
+                    return False
+
+        return len(stack) == 0
+                
                 
